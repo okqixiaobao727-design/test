@@ -6,25 +6,33 @@
   <title>发布到小红书</title>
   <style>
     body { font-family: -apple-system, sans-serif; padding: 24px; line-height: 1.6; text-align: center; }
-    a.btn { display: block; margin: 40px auto 0; padding: 22px 20px;
-            background: #ff2442; color: #fff; border-radius: 14px; text-decoration: none;
-            font-size: 24px; font-weight: 600; max-width: 320px; }
+    button.btn { display: block; margin: 40px auto 0; padding: 22px 20px; border: none; cursor: pointer;
+            background: #ff2442; color: #fff; border-radius: 14px;
+            font-size: 24px; font-weight: 600; width: 100%; max-width: 320px; }
     .hint { color: #888; margin-top: 20px; font-size: 14px; }
+    .err  { color: #c00; margin-top: 20px; font-size: 15px; display: none; }
   </style>
 </head>
 <body>
   <h2>发布到小红书</h2>
-  <p id="link"></p>
-  <div class="hint">点上面按钮拉起「所长发布」。若无反应，右上角「用 Safari 打开」再点。</div>
+  <button class="btn" id="go">📲 下载视频并发布</button>
+  <div class="hint">点按钮：把标签写进剪贴板并拉起「所长发布」下载视频。</div>
+  <div class="err" id="err">写剪贴板失败。请点右上角「···」→「用 Safari 打开」后重试。</div>
   <script>
     (function () {
-      var input = new URLSearchParams(location.search).get('input') || '';
-      // Apple 规范：input= 只接受关键词 text|clipboard，真正内容放 text=
-      var target = 'shortcuts://run-shortcut?name=' + encodeURIComponent('所长发布')
-                 + '&input=text&text=' + encodeURIComponent(input);
-      // 不自动跳转——iOS 对 JS 自动跳自定义协议会丢参数；必须用户手点链接才带得上 text
-      document.getElementById('link').innerHTML =
-        '<a class="btn" href="' + target + '">📲 发布到小红书</a>';
+      // data = JSON 串 {"drive_id":"...","tags":"#a #b"}，来自 Telegram 按钮 URL 的 ?data=
+      var data = new URLSearchParams(location.search).get('data') || '';
+      var target = 'shortcuts://run-shortcut?name=' + encodeURIComponent('所长发布') + '&input=clipboard';
+      var err = document.getElementById('err');
+      document.getElementById('go').addEventListener('click', function () {
+        // 必须在用户点击的同步上下文里写剪贴板（Safari 要求）
+        // 剪贴板放整个 JSON；快捷指令用 input=clipboard 读它、解字典
+        navigator.clipboard.writeText(data).then(function () {
+          location.href = target;          // 剪贴板就绪后再拉起快捷指令
+        }).catch(function () {
+          err.style.display = 'block';     // webview 拒绝写剪贴板 → 提示用 Safari 打开
+        });
+      });
     })();
   </script>
 </body>
