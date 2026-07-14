@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>发布到小红书</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; padding: 24px; line-height: 1.6; }
+    a.btn { display: inline-block; margin-top: 16px; padding: 12px 20px;
+            background: #ff2442; color: #fff; border-radius: 8px; text-decoration: none; font-size: 18px; }
+    .hint { color: #888; margin-top: 16px; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h2>正在拉起「所长发布」…</h2>
+  <p id="fallback"></p>
+  <script>
+    (function () {
+      var input = new URLSearchParams(location.search).get('input') || '';
+      var target = 'shortcuts://run-shortcut?name=' + encodeURIComponent('所长发布')
+                 + '&input=' + encodeURIComponent(input);
+      // 自动跳转
+      location.href = target;
+      // 兜底：Telegram 内置浏览器可能拦自定义协议
+      document.getElementById('fallback').innerHTML =
+        '<a class="btn" href="' + target + '">📲 点此运行</a>'
+        + '<div class="hint">若无反应，请点右上角「用 Safari 打开」再试。</div>';
+    })();
+  </script>
+</body>
+</html>
