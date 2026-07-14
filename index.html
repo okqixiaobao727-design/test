@@ -17,8 +17,9 @@
   <script>
     (function () {
       var input = new URLSearchParams(location.search).get('input') || '';
+      // Apple 规范：input= 只接受关键词 text|clipboard，真正内容放 text=
       var target = 'shortcuts://run-shortcut?name=' + encodeURIComponent('所长发布')
-                 + '&input=' + encodeURIComponent(input);
+                 + '&input=text&text=' + encodeURIComponent(input);
       // 自动跳转
       location.href = target;
       // 兜底：Telegram 内置浏览器可能拦自定义协议
