@@ -29,8 +29,19 @@
       // 兜底路径：真实点击时写剪贴板 + input=clipboard（已验证可靠）。
       var clipTarget = 'shortcuts://run-shortcut?name=' + name + '&input=clipboard';
       var err = document.getElementById('err');
+      // 尝试关闭本页（Telegram 内置浏览器 tab）——尽力而为，浏览器可能不允许
+      function dismiss() {
+        try { window.close(); } catch (e) {}
+        try { window.open('', '_self'); window.close(); } catch (e) {}
+      }
       // 加载即自动拉起（Telegram 内置浏览器允许加载时跳自定义协议）
       location.href = textTarget;
+      // 拉起后、以及用户从快捷指令/小红书切回本页时，尝试把本页关掉，免得挡住复制按钮
+      setTimeout(dismiss, 600);
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') dismiss();
+      });
+      window.addEventListener('pageshow', dismiss);
       // 若没被自动拉起，用户点按钮：走可靠的剪贴板路径
       document.getElementById('go').addEventListener('click', function () {
         navigator.clipboard.writeText(data).then(function () { location.href = clipTarget; })
