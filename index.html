@@ -16,26 +16,25 @@
 <body>
   <h2>发布到小红书</h2>
   <button class="btn" id="go">📲 下载视频并发布</button>
-  <div class="hint">正在自动拉起「所长发布」下载视频…（若没反应，点上面按钮）</div>
+  <div class="hint">正在自动拉起「所长发布」…（若停在此页，点上面按钮）</div>
   <div class="err" id="err">写剪贴板失败。请点右上角「···」→「用 Safari 打开」后重试。</div>
   <script>
     (function () {
       // data = JSON 串 {"drive_id":"...","title":"..."}，来自 Telegram 按钮 URL 的 ?data=
       var data = new URLSearchParams(location.search).get('data') || '';
-      var target = 'shortcuts://run-shortcut?name=' + encodeURIComponent('所长发布') + '&input=clipboard';
+      var name = encodeURIComponent('所长发布');
+      // 自动路径：把 data 直接塞进 shortcuts:// 的 text=，加载即跳转，无需手势、无需写剪贴板。
+      // 快捷指令 Get dictionary from Shortcut Input 会把这段文本解析成字典。
+      var textTarget = 'shortcuts://run-shortcut?name=' + name + '&input=text&text=' + encodeURIComponent(data);
+      // 兜底路径：真实点击时写剪贴板 + input=clipboard（已验证可靠）。
+      var clipTarget = 'shortcuts://run-shortcut?name=' + name + '&input=clipboard';
       var err = document.getElementById('err');
-      // 写剪贴板（整个 JSON，快捷指令 input=clipboard 读它）→ 成功后拉起快捷指令
-      function go() {
-        return navigator.clipboard.writeText(data).then(function () { location.href = target; });
-      }
-      // 先自动尝试：若打开本页的那次点击带来了瞬时用户激活，writeText 会成功、免点按钮
-      go().catch(function () {
-        // 自动失败（无激活/webview 拒绝）→ 退回：等用户点按钮（真实点击一定有激活）
-        err.style.display = 'block';
-      });
-      // 兜底：任何时候点按钮都能手动触发
+      // 加载即自动拉起（Telegram 内置浏览器允许加载时跳自定义协议）
+      location.href = textTarget;
+      // 若没被自动拉起，用户点按钮：走可靠的剪贴板路径
       document.getElementById('go').addEventListener('click', function () {
-        go().catch(function () { err.style.display = 'block'; });
+        navigator.clipboard.writeText(data).then(function () { location.href = clipTarget; })
+          .catch(function () { err.style.display = 'block'; });
       });
     })();
   </script>
